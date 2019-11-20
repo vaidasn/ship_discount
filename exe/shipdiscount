@@ -1,0 +1,3 @@
+#!/usr/bin/env ruby
+require 'shipdiscount/cli'
+Shipdiscount::CLI.run

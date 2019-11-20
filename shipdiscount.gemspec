@@ -31,4 +31,6 @@ See https://gist.github.com/vintedEngineering/7a24d2bb2ef4189447c6b938604ab030}
   spec.add_development_dependency "bundler", "~> 2.0"
   spec.add_development_dependency "rake", "~> 10.0"
   spec.add_development_dependency "rspec", "~> 3.0"
+  spec.add_development_dependency "cucumber"
+  spec.add_development_dependency "aruba"
 end
