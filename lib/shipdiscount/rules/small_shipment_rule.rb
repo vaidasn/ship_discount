@@ -5,7 +5,7 @@ require 'shipdiscount/providers'
 module Shipdiscount
   # Rule: All S shipments should always match the lowest
   # S package price among the providers
-  class SmallSizeRule
+  class SmallShipmentRule
     # Creates new rule
     # @param [Shipdiscount::Providers] providers
     def initialize(providers)

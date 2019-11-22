@@ -2,7 +2,8 @@
 
 require 'date'
 require 'shipdiscount/rules'
-require 'shipdiscount/rules/small_size_rule'
+require 'shipdiscount/rules/small_shipment_rule'
+require 'shipdiscount/rules/third_large_shipment_via_lp_rule'
 
 RSpec.describe 'All and specific Rules' do
   context Shipdiscount::Rules do
@@ -11,7 +12,7 @@ RSpec.describe 'All and specific Rules' do
     end
     let(:small_size_rule) { double('SmallSizeRule', apply: nil) }
     subject do
-      expect(Shipdiscount::SmallSizeRule).to receive(:new)
+      expect(Shipdiscount::SmallShipmentRule).to receive(:new)
         .with(providers).and_return(small_size_rule)
       Shipdiscount::Rules.new(providers)
     end
@@ -25,7 +26,15 @@ RSpec.describe 'All and specific Rules' do
     end
   end
 
-  context Shipdiscount::SmallSizeRule do
+  def apply_transaction(in_transaction, price_and_discount)
+    transaction = in_transaction.dup
+    subject.apply(transaction)
+    expected = in_transaction.dup
+    expected[3..4] = price_and_discount
+    expect(transaction).to eq expected
+  end
+
+  context Shipdiscount::SmallShipmentRule do
     Package = Struct.new(:size, :price)
     let(:providers) do
       provider1 = double('Provider1')
@@ -46,17 +55,38 @@ RSpec.describe 'All and specific Rules' do
     end
     subject do
       # noinspection RubyYardParamTypeMatch
-      Shipdiscount::SmallSizeRule.new(providers)
+      Shipdiscount::SmallShipmentRule.new(providers)
     end
     it 'should not apply a discount for lowest price' do
-      transaction = [Date.parse('2015-02-01'), 'S', 'MR', 1.0]
-      subject.apply(transaction)
-      expect(transaction).to eq [Date.parse('2015-02-01'), 'S', 'MR', 1.0]
+      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 1.0], [1.0]
     end
     it 'should apply a discount for higher price' do
-      transaction = [Date.parse('2015-02-13'), 'S', 'LP', 2.0]
-      subject.apply(transaction)
-      expect(transaction).to eq [Date.parse('2015-02-13'), 'S', 'LP', 2.0, 1.0]
+      apply_transaction [Date.parse('2015-02-13'), 'S', 'LP', 2.0], [2.0, 1.0]
+    end
+  end
+
+  context Shipdiscount::ThirdLargeShipmentViaLpRule do
+    subject do
+      Shipdiscount::ThirdLargeShipmentViaLpRule.new(nil)
+    end
+    it 'should not apply a discount first' do
+      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 5.0], [5.0]
+    end
+    it 'should apply discount on third L LP' do
+      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 2.0], [2.0]
+      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [Date.parse('2015-02-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [Date.parse('2015-02-06'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [Date.parse('2015-02-09'), 'L', 'LP', 6.9], [0.0, 6.9]
+      apply_transaction [Date.parse('2015-02-10'), 'L', 'LP', 6.9], [6.9]
+    end
+    it 'should reset L LP counter on month change' do
+      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 2.0], [2.0]
+      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [Date.parse('2015-03-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [Date.parse('2015-03-06'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [Date.parse('2015-03-09'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [Date.parse('2015-03-10'), 'L', 'LP', 6.9], [0.0, 6.9]
     end
   end
 end

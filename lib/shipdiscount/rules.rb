@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/rules/small_size_rule'
+require 'shipdiscount/rules/small_shipment_rule'
 module Shipdiscount
   # Shipment Discount Calculation rules that should
   # be applied on a transaction
@@ -8,7 +8,7 @@ module Shipdiscount
     # Creates new rules
     def initialize(providers)
       rules = []
-      rules << Shipdiscount::SmallSizeRule.new(providers)
+      rules << Shipdiscount::SmallShipmentRule.new(providers)
       @rules = rules.freeze
     end
 
