@@ -1,0 +1,4 @@
+BlockLength:
+  Exclude:
+    - 'Rakefile'
+    - 'spec/**/*.rb'
