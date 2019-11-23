@@ -4,16 +4,29 @@ require 'date'
 require 'shipdiscount/rules'
 require 'shipdiscount/rules/small_shipment_rule'
 require 'shipdiscount/rules/third_large_shipment_via_lp_rule'
+require 'shipdiscount/rules/accumulated_discounts_limit_rule'
 
 RSpec.describe 'All and specific Rules' do
   context Shipdiscount::Rules do
     let(:providers) do
       double('Providers')
     end
-    let(:small_size_rule) { double('SmallSizeRule', apply: nil) }
+    let(:small_size_rule) do
+      double('SmallSizeRule', apply: nil)
+    end
+    let(:third_large_shipment_via_lp_rule) do
+      double('ThirdLargeShipmentViaLpRule', apply: nil)
+    end
+    let(:accumulated_discounts_limit_rule) do
+      double('AccumulatedDiscountsLimitRule', apply: nil)
+    end
     subject do
       expect(Shipdiscount::SmallShipmentRule).to receive(:new)
         .with(providers).and_return(small_size_rule)
+      expect(Shipdiscount::ThirdLargeShipmentViaLpRule).to receive(:new)
+        .with(providers).and_return(third_large_shipment_via_lp_rule)
+      expect(Shipdiscount::AccumulatedDiscountsLimitRule).to receive(:new)
+        .with(providers).and_return(accumulated_discounts_limit_rule)
       Shipdiscount::Rules.new(providers)
     end
     it 'covers all rules' do
@@ -32,6 +45,10 @@ RSpec.describe 'All and specific Rules' do
     expected = in_transaction.dup
     expected[3..4] = price_and_discount
     expect(transaction).to eq expected
+  end
+
+  def ymd(string_date)
+    Date.parse(string_date)
   end
 
   context Shipdiscount::SmallShipmentRule do
@@ -58,10 +75,10 @@ RSpec.describe 'All and specific Rules' do
       Shipdiscount::SmallShipmentRule.new(providers)
     end
     it 'should not apply a discount for lowest price' do
-      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 1.0], [1.0]
+      apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0], [1.0]
     end
     it 'should apply a discount for higher price' do
-      apply_transaction [Date.parse('2015-02-13'), 'S', 'LP', 2.0], [2.0, 1.0]
+      apply_transaction [ymd('2015-02-13'), 'S', 'LP', 2.0], [2.0, 1.0]
     end
   end
 
@@ -70,23 +87,50 @@ RSpec.describe 'All and specific Rules' do
       Shipdiscount::ThirdLargeShipmentViaLpRule.new(nil)
     end
     it 'should not apply a discount first' do
-      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 5.0], [5.0]
+      apply_transaction [ymd('2015-02-03'), 'L', 'LP', 5.0], [5.0]
     end
     it 'should apply discount on third L LP' do
-      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 2.0], [2.0]
-      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 6.9], [6.9]
-      apply_transaction [Date.parse('2015-02-05'), 'S', 'LP', 1.5], [1.5]
-      apply_transaction [Date.parse('2015-02-06'), 'L', 'LP', 6.9], [6.9]
-      apply_transaction [Date.parse('2015-02-09'), 'L', 'LP', 6.9], [0.0, 6.9]
-      apply_transaction [Date.parse('2015-02-10'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-02-01'), 'S', 'MR', 2.0], [2.0]
+      apply_transaction [ymd('2015-02-03'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-02-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [ymd('2015-02-06'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-02-09'), 'L', 'LP', 6.9], [0.0, 6.9]
+      apply_transaction [ymd('2015-02-10'), 'L', 'LP', 6.9], [6.9]
     end
     it 'should reset L LP counter on month change' do
-      apply_transaction [Date.parse('2015-02-01'), 'S', 'MR', 2.0], [2.0]
-      apply_transaction [Date.parse('2015-02-03'), 'L', 'LP', 6.9], [6.9]
-      apply_transaction [Date.parse('2015-03-05'), 'S', 'LP', 1.5], [1.5]
-      apply_transaction [Date.parse('2015-03-06'), 'L', 'LP', 6.9], [6.9]
-      apply_transaction [Date.parse('2015-03-09'), 'L', 'LP', 6.9], [6.9]
-      apply_transaction [Date.parse('2015-03-10'), 'L', 'LP', 6.9], [0.0, 6.9]
+      apply_transaction [ymd('2015-02-01'), 'S', 'MR', 2.0], [2.0]
+      apply_transaction [ymd('2015-02-03'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-03-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [ymd('2015-03-06'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-03-09'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-03-10'), 'L', 'LP', 6.9], [0.0, 6.9]
+    end
+  end
+  context Shipdiscount::AccumulatedDiscountsLimitRule do
+    subject do
+      Shipdiscount::AccumulatedDiscountsLimitRule.new(nil)
+    end
+    it 'should not exceed limit within one month' do
+      apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-02-03'), 'L', 'LP', 6.0], [6.0]
+      apply_transaction [ymd('2015-02-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [ymd('2015-02-09'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-02-10'), 'L', 'LP', 0.0, 6.9], [0.0, 6.9]
+      apply_transaction [ymd('2015-02-12'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-02-14'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [1.0, 0.1]
+      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [1.0]
+    end
+    it 'should not exceed limit within one month' do
+      apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-02-03'), 'L', 'LP', 6.0], [6.0]
+      apply_transaction [ymd('2015-02-05'), 'S', 'LP', 1.5], [1.5]
+      apply_transaction [ymd('2015-03-09'), 'L', 'LP', 6.9], [6.9]
+      apply_transaction [ymd('2015-03-10'), 'L', 'LP', 0.0, 6.9], [0.0, 6.9]
+      apply_transaction [ymd('2015-03-12'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-03-14'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-03-15'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
+      apply_transaction [ymd('2015-03-15'), 'S', 'MR', 1.0, 1.0], [1.0, 0.1]
     end
   end
 end
