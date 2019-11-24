@@ -47,24 +47,20 @@ RSpec.describe 'All and specific Rules' do
     expect(transaction).to eq expected
   end
 
-  def ymd(string_date)
-    Date.parse(string_date)
-  end
-
   context Shipdiscount::SmallShipmentRule do
-    Package = Struct.new(:size, :price)
+    PackageForRule = Struct.new(:size, :price)
     let(:providers) do
       provider1 = double('Provider1')
       expect(provider1).to receive(:packages)
-        .and_return('S' => Package.new('S', 2.0),
-                    'M' => Package.new('M', 4.0))
+        .and_return('S' => PackageForRule.new('S', 2.0),
+                    'M' => PackageForRule.new('M', 4.0))
       provider2 = double('Provider2')
       expect(provider2).to receive(:packages)
-        .and_return('S' => Package.new('S', 1.0))
+        .and_return('S' => PackageForRule.new('S', 1.0))
       provider3 = double('Provider3')
       expect(provider3).to receive(:packages)
-        .and_return('S' => Package.new('S', 3.0),
-                    'L' => Package.new('L', 5.0))
+        .and_return('S' => PackageForRule.new('S', 3.0),
+                    'L' => PackageForRule.new('L', 5.0))
       providers = double('Providers')
       expect(providers).to receive(:each)
         .and_yield(provider1).and_yield(provider2).and_yield(provider3)

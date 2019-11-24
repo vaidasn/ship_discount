@@ -21,6 +21,7 @@ module Shipdiscount
 
     # Gets provider by name
     # @param [String] name provider name
+    # @return [Shipdiscount::Providers::Provider]
     def [](name)
       @providers[name]
     end

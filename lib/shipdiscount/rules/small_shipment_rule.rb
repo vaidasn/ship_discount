@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'shipdiscount/providers'
+require 'shipdiscount/transaction'
 
 module Shipdiscount
   # Rule: All S shipments should always match the lowest
@@ -19,10 +20,12 @@ module Shipdiscount
     end
 
     def apply(transaction)
-      return if transaction[1] != 'S'
+      return if transaction[Shipdiscount::Transaction::PACKAGE_SIZE] != 'S'
 
-      price = transaction[3]
-      transaction[4] = price - @min_price if price > @min_price
+      price = transaction[Shipdiscount::Transaction::PRICE]
+      return if price <= @min_price
+
+      transaction[Shipdiscount::Transaction::DISCOUNT] = price - @min_price
     end
 
     private
