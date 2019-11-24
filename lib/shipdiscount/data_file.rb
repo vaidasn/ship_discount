@@ -2,7 +2,7 @@
 
 module Shipdiscount
   # Data file record enumeration and reading provider
-  class DataFile
+  module DataFile
     # Iterate over data file and execute the block for each record
     # @param file_name [String] data file name
     def self.each_record(file_name)
