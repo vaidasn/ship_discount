@@ -4,17 +4,20 @@ require 'shipdiscount/providers'
 require 'date'
 
 module Shipdiscount
-  # Transaction data provider
-  class Transaction
+  module Transaction
     DATE = 0
     PACKAGE_SIZE = 1
     PROVIDER = 2
     PRICE = 3
     DISCOUNT = 4
-
-    # Creates new transaction processor
+  end
+  # Converts input fields into transaction
+  class TransactionConverter
+    include Transaction
+    # Creates new transaction converter
     # @param [Shipdiscount::Providers] providers providers for price calculation
-    # @throw :invalid_transaction in case of transaction validation of parsing error
+    # @throw
+    # :invalid_transaction in case of transaction validation of parse error
     def initialize(providers)
       @last_transaction = nil
       @providers = providers
@@ -53,7 +56,8 @@ module Shipdiscount
     end
 
     def validate_transaction(previous_transaction, transaction)
-      unless previous_transaction && transaction[DATE] < previous_transaction[DATE]
+      unless previous_transaction &&
+             transaction[DATE] < previous_transaction[DATE]
         return
       end
 

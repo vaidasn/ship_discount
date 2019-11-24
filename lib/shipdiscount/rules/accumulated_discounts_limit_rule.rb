@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/providers'
-require 'shipdiscount/transaction'
+require 'shipdiscount/transaction_converter'
 require 'bigdecimal'
 
 module Shipdiscount
@@ -9,43 +8,46 @@ module Shipdiscount
   # If there are not enough funds to fully cover a discount this calendar month,
   # it should be covered partially
   class AccumulatedDiscountsLimitRule
+    include Transaction
     # Creates new rule
     def initialize(_providers)
       @last_date = nil
-      @accumulated_discount = BigDecimal('0.0')
+      @accumulated_discount = ZERO
     end
 
     def apply(transaction)
-      discount = transaction[Shipdiscount::Transaction::DISCOUNT]
+      discount = transaction[DISCOUNT]
       return unless discount
 
       try_reset_accumulated_discount transaction
       @accumulated_discount += discount
-      if @accumulated_discount > BigDecimal('10.0')
-        transaction[Shipdiscount::Transaction::DISCOUNT] =
-          (discount - @accumulated_discount + BigDecimal('10.0')).to_f
+      if @accumulated_discount > TEN
+        transaction[DISCOUNT] = (discount - @accumulated_discount + TEN).to_f
       end
       try_delete_exceeded_discount transaction
     end
 
     private
 
+    ZERO = BigDecimal('0.0')
+    TEN = BigDecimal('10.0')
+
+    private_constant :ZERO, :TEN
+
     def try_reset_accumulated_discount(transaction)
-      transaction_date = transaction[Shipdiscount::Transaction::DATE]
+      transaction_date = transaction[DATE]
       if @last_date &&
          (@last_date.year != transaction_date.year ||
              @last_date.month != transaction_date.month)
-        @accumulated_discount = BigDecimal('0.0')
+        @accumulated_discount = ZERO
       end
       @last_date = transaction_date
     end
 
     def try_delete_exceeded_discount(transaction)
-      if transaction[Shipdiscount::Transaction::DISCOUNT] > BigDecimal('0.0')
-        return
-      end
+      return if transaction[DISCOUNT] > ZERO
 
-      transaction.delete_at Shipdiscount::Transaction::DISCOUNT
+      transaction.delete_at DISCOUNT
     end
   end
 end

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/providers'
-require 'shipdiscount/transaction'
+require 'shipdiscount/transaction_converter'
 
 module Shipdiscount
   # Rule: Third L shipment via LP should be free,
   # but only once a calendar month
   class ThirdLargeShipmentViaLpRule
+    include Transaction
     # Creates new rule
     def initialize(_providers)
       @last_date = nil
@@ -14,23 +14,23 @@ module Shipdiscount
     end
 
     def apply(transaction)
-      if transaction[Shipdiscount::Transaction::PACKAGE_SIZE] != 'L' ||
-         transaction[Shipdiscount::Transaction::PROVIDER].upcase != 'LP'
+      if transaction[PACKAGE_SIZE] != 'L' ||
+         transaction[PROVIDER].upcase != 'LP'
         return
       end
 
       count_transaction(transaction)
       return if @count_per_month != 3
 
-      price = transaction[Shipdiscount::Transaction::PRICE]
-      transaction[Shipdiscount::Transaction::PRICE] = 0.0
-      transaction[Shipdiscount::Transaction::DISCOUNT] = price
+      price = transaction[PRICE]
+      transaction[PRICE] = 0.0
+      transaction[DISCOUNT] = price
     end
 
     private
 
     def count_transaction(transaction)
-      transaction_date = transaction[Shipdiscount::Transaction::DATE]
+      transaction_date = transaction[DATE]
       if @last_date &&
          (@last_date.year != transaction_date.year ||
              @last_date.month != transaction_date.month)
