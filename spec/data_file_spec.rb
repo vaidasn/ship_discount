@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/data_file'
+require 'ship_discount/data_file'
 require 'tempfile'
 
-RSpec.describe Shipdiscount::DataFile do
+RSpec.describe ShipDiscount::DataFile do
   temp_file1 = nil
 
   before do
@@ -39,7 +39,7 @@ RSpec.describe Shipdiscount::DataFile do
     it 'iterates over three record mocked file' do
       mocked_three_record_file
       records = []
-      Shipdiscount::DataFile.each_record('test_data.txt') do |fields|
+      ShipDiscount::DataFile.each_record('test_data.txt') do |fields|
         records << fields
       end
       expect(records).to eq([%w[this is line one],
@@ -48,11 +48,11 @@ RSpec.describe Shipdiscount::DataFile do
     end
     it 'done not iterate over empty mocked file' do
       mocked_empty_file
-      Shipdiscount::DataFile.each_record('test_data.txt')
+      ShipDiscount::DataFile.each_record('test_data.txt')
     end
     it 'iterates over temp file' do
       records = []
-      Shipdiscount::DataFile.each_record(temp_file1&.to_path) do |fields|
+      ShipDiscount::DataFile.each_record(temp_file1&.to_path) do |fields|
         records << fields
       end
       expect(records).to eq([%w[line one], %w[second line]])
@@ -62,18 +62,18 @@ RSpec.describe Shipdiscount::DataFile do
   context 'when read invoked' do
     it 'reads three record mocked file' do
       mocked_three_record_file
-      records = Shipdiscount::DataFile.read('test_data.txt')
+      records = ShipDiscount::DataFile.read('test_data.txt')
       expect(records).to eq([%w[this is line one],
                              %w[and this is two],
                              ['line_three']])
     end
     it 'done not iterate over empty mocked file' do
       mocked_empty_file
-      records = Shipdiscount::DataFile.read('test_data.txt')
+      records = ShipDiscount::DataFile.read('test_data.txt')
       expect(records).to eq([])
     end
     it 'iterates over temp file' do
-      records = Shipdiscount::DataFile.read(temp_file1&.to_path)
+      records = ShipDiscount::DataFile.read(temp_file1&.to_path)
       expect(records).to eq([%w[line one], %w[second line]])
     end
   end

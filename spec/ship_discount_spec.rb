@@ -1,17 +1,17 @@
 # frozen_string_literal: true
 
-require 'shipdiscount'
-require 'shipdiscount/discount_processor'
+require 'ship_discount'
+require 'ship_discount/discount_processor'
 
-RSpec.describe Shipdiscount do
+RSpec.describe ShipDiscount do
   it 'has a version number' do
-    expect(Shipdiscount::VERSION).not_to be nil
+    expect(ShipDiscount::VERSION).not_to be nil
   end
   it 'invokes DiscountProcessor from process' do
     discount_processor = double('DiscountProcessor')
     expect(discount_processor).to receive(:process).with(no_args)
-    expect(Shipdiscount::DiscountProcessor).to receive(:new)
+    expect(ShipDiscount::DiscountProcessor).to receive(:new)
       .with('input_test.txt', $stderr).and_return discount_processor
-    Shipdiscount.process 'input_test.txt', $stderr
+    ShipDiscount.process 'input_test.txt', $stderr
   end
 end

@@ -1,4 +1,6 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
 
-# Specify your gem's dependencies in shipdiscount.gemspec
+source 'https://rubygems.org'
+
+# Specify your gem's dependencies in ship_discount.gemspec
 gemspec

@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/transaction_converter'
+require 'ship_discount/transaction_converter'
 
-module Shipdiscount
+module ShipDiscount
   # Rule: Third L shipment via LP should be free,
   # but only once a calendar month
   class ThirdLargeShipmentViaLpRule

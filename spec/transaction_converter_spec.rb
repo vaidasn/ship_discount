@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/transaction_converter'
+require 'ship_discount/transaction_converter'
 
-RSpec.describe Shipdiscount::TransactionConverter do
+RSpec.describe ShipDiscount::TransactionConverter do
   PackageForTransaction = Struct.new(:size, :price)
   let(:providers) do
     provider = double('Provider')
@@ -16,7 +16,7 @@ RSpec.describe Shipdiscount::TransactionConverter do
   end
   subject do
     # noinspection RubyYardParamTypeMatch
-    Shipdiscount::TransactionConverter.new providers
+    ShipDiscount::TransactionConverter.new providers
   end
   it 'fills two ordered transactions' do
     expect(subject.next_transaction(%w[2015-02-01 S MR]))

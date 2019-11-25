@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Shipdiscount
+module ShipDiscount
   # Data file record enumeration and reading provider
   module DataFile
     # Iterate over data file and execute the block for each record

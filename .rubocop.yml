@@ -2,3 +2,6 @@ BlockLength:
   Exclude:
     - 'Rakefile'
     - 'spec/**/*.rb'
+StderrPuts:
+  Exclude:
+    - 'lib/ship_discount/cli.rb'

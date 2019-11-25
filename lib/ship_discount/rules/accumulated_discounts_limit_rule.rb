@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/transaction_converter'
+require 'ship_discount/transaction_converter'
 require 'bigdecimal'
 
-module Shipdiscount
+module ShipDiscount
   # Rule: Accumulated discounts cannot exceed 10 EUR in a calendar month.
   # If there are not enough funds to fully cover a discount this calendar month,
   # it should be covered partially
@@ -21,10 +21,13 @@ module Shipdiscount
 
       try_reset_accumulated_discount transaction
       @accumulated_discount += discount
-      if @accumulated_discount > TEN
-        transaction[DISCOUNT] = (discount - @accumulated_discount + TEN).to_f
-      end
+      return unless @accumulated_discount > TEN
+
+      transaction[DISCOUNT] = (discount - @accumulated_discount + TEN).to_f
       try_delete_exceeded_discount transaction
+      limited_discount = transaction[DISCOUNT]
+      transaction[PRICE] +=
+        limited_discount ? discount - limited_discount : discount
     end
 
     private

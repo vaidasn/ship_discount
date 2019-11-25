@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require 'date'
-require 'shipdiscount/rules'
-require 'shipdiscount/rules/small_shipment_rule'
-require 'shipdiscount/rules/third_large_shipment_via_lp_rule'
-require 'shipdiscount/rules/accumulated_discounts_limit_rule'
+require 'ship_discount/rules'
+require 'ship_discount/rules/small_shipment_rule'
+require 'ship_discount/rules/third_large_shipment_via_lp_rule'
+require 'ship_discount/rules/accumulated_discounts_limit_rule'
 
 RSpec.describe 'All and specific Rules' do
-  context Shipdiscount::Rules do
+  context ShipDiscount::Rules do
     let(:providers) do
       double('Providers')
     end
@@ -21,13 +21,13 @@ RSpec.describe 'All and specific Rules' do
       double('AccumulatedDiscountsLimitRule', apply: nil)
     end
     subject do
-      expect(Shipdiscount::SmallShipmentRule).to receive(:new)
+      expect(ShipDiscount::SmallShipmentRule).to receive(:new)
         .with(providers).and_return(small_size_rule)
-      expect(Shipdiscount::ThirdLargeShipmentViaLpRule).to receive(:new)
+      expect(ShipDiscount::ThirdLargeShipmentViaLpRule).to receive(:new)
         .with(providers).and_return(third_large_shipment_via_lp_rule)
-      expect(Shipdiscount::AccumulatedDiscountsLimitRule).to receive(:new)
+      expect(ShipDiscount::AccumulatedDiscountsLimitRule).to receive(:new)
         .with(providers).and_return(accumulated_discounts_limit_rule)
-      Shipdiscount::Rules.new(providers)
+      ShipDiscount::Rules.new(providers)
     end
     it 'covers all rules' do
       expect(subject.instance_variable_get(:@rules)).to all be_a(double.class)
@@ -47,7 +47,7 @@ RSpec.describe 'All and specific Rules' do
     expect(transaction).to eq expected
   end
 
-  context Shipdiscount::SmallShipmentRule do
+  context ShipDiscount::SmallShipmentRule do
     PackageForRule = Struct.new(:size, :price)
     let(:providers) do
       provider1 = double('Provider1')
@@ -68,19 +68,19 @@ RSpec.describe 'All and specific Rules' do
     end
     subject do
       # noinspection RubyYardParamTypeMatch
-      Shipdiscount::SmallShipmentRule.new(providers)
+      ShipDiscount::SmallShipmentRule.new(providers)
     end
     it 'should not apply a discount for lowest price' do
       apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0], [1.0]
     end
     it 'should apply a discount for higher price' do
-      apply_transaction [ymd('2015-02-13'), 'S', 'LP', 2.0], [2.0, 1.0]
+      apply_transaction [ymd('2015-02-13'), 'S', 'LP', 2.0], [1.0, 1.0]
     end
   end
 
-  context Shipdiscount::ThirdLargeShipmentViaLpRule do
+  context ShipDiscount::ThirdLargeShipmentViaLpRule do
     subject do
-      Shipdiscount::ThirdLargeShipmentViaLpRule.new(nil)
+      ShipDiscount::ThirdLargeShipmentViaLpRule.new(nil)
     end
     it 'should not apply a discount first' do
       apply_transaction [ymd('2015-02-03'), 'L', 'LP', 5.0], [5.0]
@@ -102,9 +102,9 @@ RSpec.describe 'All and specific Rules' do
       apply_transaction [ymd('2015-03-10'), 'L', 'LP', 6.9], [0.0, 6.9]
     end
   end
-  context Shipdiscount::AccumulatedDiscountsLimitRule do
+  context ShipDiscount::AccumulatedDiscountsLimitRule do
     subject do
-      Shipdiscount::AccumulatedDiscountsLimitRule.new(nil)
+      ShipDiscount::AccumulatedDiscountsLimitRule.new(nil)
     end
     it 'should not exceed limit within one month' do
       apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
@@ -114,8 +114,8 @@ RSpec.describe 'All and specific Rules' do
       apply_transaction [ymd('2015-02-10'), 'L', 'LP', 0.0, 6.9], [0.0, 6.9]
       apply_transaction [ymd('2015-02-12'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
       apply_transaction [ymd('2015-02-14'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
-      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [1.0, 0.1]
-      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [1.0]
+      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [1.9, 0.1]
+      apply_transaction [ymd('2015-02-15'), 'S', 'MR', 1.0, 1.0], [2.0]
     end
     it 'should not exceed limit within one month' do
       apply_transaction [ymd('2015-02-01'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
@@ -126,7 +126,7 @@ RSpec.describe 'All and specific Rules' do
       apply_transaction [ymd('2015-03-12'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
       apply_transaction [ymd('2015-03-14'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
       apply_transaction [ymd('2015-03-15'), 'S', 'MR', 1.0, 1.0], [1.0, 1.0]
-      apply_transaction [ymd('2015-03-15'), 'S', 'MR', 1.0, 1.0], [1.0, 0.1]
+      apply_transaction [ymd('2015-03-15'), 'S', 'MR', 1.0, 1.0], [1.9, 0.1]
     end
   end
 end

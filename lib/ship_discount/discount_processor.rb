@@ -1,13 +1,15 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/data_file'
-require 'shipdiscount/providers'
-require 'shipdiscount/transaction_converter'
-require 'shipdiscount/rules'
+require 'ship_discount/data_file'
+require 'ship_discount/providers'
+require 'ship_discount/transaction_converter'
+require 'ship_discount/rules'
 
-module Shipdiscount
+module ShipDiscount
   # Discount processor
   class DiscountProcessor
+    include Transaction
+
     # Creates new processor
     # @param [String] in_file input file name
     # @param [IO] out_fd output file descriptor
@@ -35,6 +37,7 @@ module Shipdiscount
     def process_transaction(fields)
       transaction = @transaction_converter.next_transaction fields
       @rules.apply transaction
+      transaction[DISCOUNT] = '-' unless transaction[DISCOUNT]
       output_transaction transaction
     end
 
@@ -44,7 +47,9 @@ module Shipdiscount
     end
 
     def output_transaction(values)
-      @out_fd.puts values.join ' '
+      @out_fd.puts(values.map do |v|
+        v.is_a?(Float) ? format('%<float>0.2f', float: v) : v
+      end.join(' '))
     end
   end
 end

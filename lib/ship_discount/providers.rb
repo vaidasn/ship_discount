@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/data_file'
+require 'ship_discount/data_file'
 
-module Shipdiscount
+module ShipDiscount
   # Encapsulates shipping providers
   class Providers
     Package = Struct.new(:size, :price)
@@ -21,7 +21,7 @@ module Shipdiscount
 
     # Gets provider by name
     # @param [String] name provider name
-    # @return [Shipdiscount::Providers::Provider]
+    # @return [Providers::Provider]
     def [](name)
       @providers[name]
     end

@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/providers'
+require 'ship_discount/providers'
 require 'date'
 
-module Shipdiscount
+module ShipDiscount
   module Transaction
     DATE = 0
     PACKAGE_SIZE = 1
@@ -15,7 +15,7 @@ module Shipdiscount
   class TransactionConverter
     include Transaction
     # Creates new transaction converter
-    # @param [Shipdiscount::Providers] providers providers for price calculation
+    # @param [ShipDiscount::Providers] providers providers for price calculation
     # @throw
     # :invalid_transaction in case of transaction validation of parse error
     def initialize(providers)

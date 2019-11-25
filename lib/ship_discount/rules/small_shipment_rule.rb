@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'shipdiscount/providers'
-require 'shipdiscount/transaction_converter'
+require 'ship_discount/providers'
+require 'ship_discount/transaction_converter'
 
-module Shipdiscount
+module ShipDiscount
   # Rule: All S shipments should always match the lowest
   # S package price among the providers
   class SmallShipmentRule
@@ -27,12 +27,13 @@ module Shipdiscount
       return if price <= @min_price
 
       transaction[DISCOUNT] = price - @min_price
+      transaction[PRICE] -= transaction[DISCOUNT]
     end
 
     private
 
     # @param [Float] current_min
-    # @param [Shipdiscount::Providers::Package] package
+    # @param [ShipDiscount::Providers::Package] package
     # @return [Float] new min
     def min_price(current_min, package)
       current_min > package.price ? package.price.to_f : current_min
