@@ -1,38 +1,46 @@
-# Shipdiscount
+# ship_discount
 
-Welcome to your new gem! In this directory, you'll find the files you need to be able to package up your Ruby library into a gem. Put your Ruby code in the file `lib/shipdiscount`. To experiment with that code, run `bin/console` for an interactive prompt.
+This gem implements shipment discount calculation module according to requirements in
+https://gist.github.com/vintedEngineering/7a24d2bb2ef4189447c6b938604ab030
 
-TODO: Delete this and the text above, and describe your gem
+Module can be used both as command line tool or as API in module `ShipDiscount`.
+
+The module makes the following assumptions that were not strictly defined in the requirements:
+* It is assumed that the input file has records in date increasing order.
+  Validation marks records as ignored if this is not the case
+* The shipment provider data is defined in `lib/ship_discount/providers.txt` following the format of `input.txt` 
 
 ## Installation
 
-Add this line to your application's Gemfile:
+The module can be installed locally by performing the following commands:
 
-```ruby
-gem 'shipdiscount'
-```
+    $ rake build
+    $ gem install pkg/ship_discount-*.gem
 
-And then execute:
+Then the module can be simply invoked by specifying it's name:
 
-    $ bundle
-
-Or install it yourself as:
-
-    $ gem install shipdiscount
+    $ ship_discount
+    
+assuming that file `input.txt` is available in current directory.
 
 ## Usage
 
-TODO: Write usage instructions here
+Invoke the tool with option `--help` to get usage information:
+
+    $ ship_discount --help
 
 ## Development
 
-After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake spec` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+After checking out the repo, run `bin/setup` to install dependencies.
+Then, run `rake spec` to run the unit tests and `rake cucumber` to run integration tests.
 
-To install this gem onto your local machine, run `bundle exec rake install`. To release a new version, update the version number in `version.rb`, and then run `bundle exec rake release`, which will create a git tag for the version, push git commits and tags, and push the `.gem` file to [rubygems.org](https://rubygems.org).
+You can also run `bin/console` for an interactive prompt that will allow you to experiment.
+
+To run the module without installing it `bundle exec exe/shipdiscount <file_name>`.
 
 ## Contributing
 
-Bug reports and pull requests are welcome on GitHub at https://github.com/[USERNAME]/shipdiscount.
+Bug reports and pull requests are welcome on GitHub at https://github.com/vaidasn/ship_discount.
 
 ## License
 
